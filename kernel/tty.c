@@ -26,6 +26,8 @@ PRIVATE int esc_mode;
 PUBLIC char keys[80 * 25] = {0};
 PUBLIC char s_keys[80 * 25] = {0};
 PUBLIC int pos[80 * 25] = {0};
+PUBLIC char delete[80*25]={0};
+PUBLIC int d_index;
 PUBLIC int index;
 PUBLIC int p_index;
 PUBLIC int s_index;
@@ -38,6 +40,7 @@ PUBLIC void task_tty()
         clean_screen();
         esc_mode = 0;
         index = 0;
+        d_index=0;
         s_index = 0;
         p_index = 0;
         time = get_ticks();
@@ -147,6 +150,7 @@ PUBLIC void in_process(u32 key)
                                 if (index > 0)
                                 {
                                         pos[p_index++] = --index;
+                                        delete[d_index++]=keys[index];
                                         refresh_screen();
                                 }
                                 break;
@@ -163,6 +167,8 @@ PRIVATE void back()
 {
         p_index -= 1;
         index = pos[p_index - 1];
+        if(pos[p_index]<pos[p_index-1])
+                keys[index-1]=delete[--d_index];
         refresh_screen();
 }
 PRIVATE void refresh_screen()
