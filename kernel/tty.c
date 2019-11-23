@@ -82,11 +82,11 @@ PUBLIC void in_process(u32 key)
                                         disp_str(" ");
                                 break;
                         case BACKSPACE:
-                                disp_pos -= 2;
-                                disp_str(" ");
-                                disp_pos -= 2;
-                                if (index > 0)
+                                if (s_index > 0)
                                 {
+                                        disp_pos -= 2;
+                                        disp_str(" ");
+                                        disp_pos -= 2;
                                         s_keys[--s_index] = '\0';
                                         pos[index] = 0;
                                 }
@@ -157,17 +157,19 @@ PRIVATE void str_match()
 {
         int is_match = 0;
         char output[2] = {'\0', '\0'};
-        for (int i = 0; i < index;i++)
+        for (int i = 0; i < index; i++)
         {
                 int j = i;
-                while (s_keys[j - i] == keys[j++]);
+                while (s_keys[j - i] == keys[j++])
+                        ;
                 if (j - i - s_index > 0)
                 {
-                        for(int k=i;k<j-1;k++){
+                        for (int k = i; k < j - 1; k++)
+                        {
                                 output[0] = keys[k];
                                 disp_color_str(output, BLUE);
-                                i=k;
-                        }  
+                                i = k;
+                        }
                 }
                 else
                 {
