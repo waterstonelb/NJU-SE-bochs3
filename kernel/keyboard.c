@@ -194,7 +194,8 @@ PUBLIC void keyboard_read()
 
 			/* 如果 Key 不为0说明是可打印字符，否则不做处理 */
 			if (key) {
-
+				key |=ctrl_l?FLAG_CTRL_L:0;
+				key |=ctrl_r?FLAG_CTRL_R:0;
 				in_process(key);
 			}
 		}

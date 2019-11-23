@@ -17,6 +17,8 @@
 PRIVATE void clean_screen();
 PRIVATE void set_cursor(unsigned int);
 PRIVATE void str_match();
+PRIVATE void refresh_screen();
+PRIVATE void back();
 
 PRIVATE int time;
 PRIVATE int esc_mode;
@@ -25,6 +27,7 @@ PUBLIC char keys[80 * 25] = {0};
 PUBLIC char s_keys[80 * 25] = {0};
 PUBLIC int pos[80 * 25] = {0};
 PUBLIC int index;
+PUBLIC int p_index;
 PUBLIC int s_index;
 
 /*======================================================================*
@@ -36,13 +39,15 @@ PUBLIC void task_tty()
         esc_mode = 0;
         index = 0;
         s_index = 0;
+        p_index = 0;
         time = get_ticks();
         while (1)
         {
                 if (((get_ticks() - time) * 1000 / HZ) > 200000 && esc_mode == 0)
                 {
-                        //清屏
-                        //clean_screen();
+                        clean_screen();
+                        index = 0;
+                        s_index = 0;
                         time = get_ticks();
                 }
                 keyboard_read();
@@ -60,9 +65,12 @@ PUBLIC void in_process(u32 key)
         {
                 if (!(key & FLAG_EXT))
                 {
-                        output[0] = key & 0xFF;
-                        s_keys[s_index++] = output[0];
-                        disp_color_str(output, BLUE);
+                        if (!(key & FLAG_CTRL_L || key & FLAG_CTRL_R))
+                        {
+                                output[0] = key & 0xFF;
+                                s_keys[s_index++] = output[0];
+                                disp_color_str(output, BLUE);
+                        }
                 }
                 else
                 {
@@ -88,19 +96,12 @@ PUBLIC void in_process(u32 key)
                                         disp_str(" ");
                                         disp_pos -= 2;
                                         s_keys[--s_index] = '\0';
-                                        pos[index] = 0;
                                 }
                                 break;
                         case ESC:
                                 esc_mode = 0;
                                 s_index = 0;
-                                if (index > 0)
-                                {
-                                        keys[index] = '\0';
-                                        pos[index] = 0;
-                                }
-                                clean_screen();
-                                disp_str(keys);
+                                refresh_screen();
                                 break;
                         default:
                                 break;
@@ -111,10 +112,17 @@ PUBLIC void in_process(u32 key)
         {
                 if (!(key & FLAG_EXT))
                 {
-                        output[0] = key & 0xFF;
-                        keys[index] = output[0];
-                        pos[index++] = disp_pos;
-                        disp_str(output);
+                        if (key & FLAG_CTRL_L || key & FLAG_CTRL_R)
+                        {
+                                back();
+                        }
+                        else
+                        {
+                                output[0] = key & 0xFF;
+                                keys[index] = output[0];
+                                pos[p_index++] = ++index;
+                                disp_str(output);
+                        }
                 }
                 else
                 {
@@ -123,12 +131,12 @@ PUBLIC void in_process(u32 key)
                         {
                         case ENTER:
                                 keys[index] = '\n';
-                                pos[index++] = disp_pos;
+                                pos[p_index++] = ++index;
                                 disp_str("\n");
                                 break;
                         case TAB:
                                 keys[index] = '\t';
-                                pos[index++] = disp_pos;
+                                pos[p_index++] = ++index;
                                 int num = 4 - (disp_pos / 2 % 4);
                                 for (int i = 0; i < num; i++)
                                 {
@@ -138,10 +146,8 @@ PUBLIC void in_process(u32 key)
                         case BACKSPACE:
                                 if (index > 0)
                                 {
-                                        keys[--index] = '\0';
-                                        pos[index] = 0;
-                                        clean_screen();
-                                        disp_str(keys);
+                                        pos[p_index++] = --index;
+                                        refresh_screen();
                                 }
                                 break;
                         case ESC:
@@ -150,6 +156,35 @@ PUBLIC void in_process(u32 key)
                         default:
                                 break;
                         }
+                }
+        }
+}
+PRIVATE void back()
+{
+        p_index -= 1;
+        index = pos[p_index - 1];
+        refresh_screen();
+}
+PRIVATE void refresh_screen()
+{
+        clean_screen();
+        char output[2] = {'\0', '\0'};
+        for (int i = 0; i < index; i++)
+        {
+                if (keys[i] == '\n')
+                {
+                        disp_str("\n");
+                }
+                else if (keys[i] == '\t')
+                {
+                        int num = 4 - (disp_pos / 2 % 4);
+                        for (int i = 0; i < num; i++)
+                                disp_str(" ");
+                }
+                else
+                {
+                        output[0] = keys[i];
+                        disp_str(output);
                 }
         }
 }
