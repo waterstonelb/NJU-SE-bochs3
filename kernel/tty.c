@@ -137,7 +137,7 @@ PUBLIC void in_process(u32 key)
 			case ENTER:
 				keys[index] = '\n';
 				pos[p_index++] = ++index;
-				disp_pos = 160 * (disp_pos / 160 +1);
+				disp_pos = 160 * (disp_pos / 160 + 1);
 				set_cursor(disp_pos);
 				break;
 			case TAB:
@@ -187,7 +187,7 @@ PRIVATE void refresh_screen()
 	{
 		if (keys[i] == '\n')
 		{
-			disp_pos = 160 * (disp_pos / 160 +1);
+			disp_pos = 160 * (disp_pos / 160 + 1);
 			set_cursor(disp_pos);
 		}
 		else if (keys[i] == '\t')
@@ -223,8 +223,22 @@ PRIVATE void str_match()
 		}
 		else
 		{
-			output[0] = keys[i];
-			disp_str(output);
+			if (keys[i] == '\n')
+			{
+				disp_pos = 160 * (disp_pos / 160 + 1);
+				set_cursor(disp_pos);
+			}
+			else if (keys[i] == '\t')
+			{
+				int num = 4 - (disp_pos / 2 % 4);
+				for (int i = 0; i < num; i++)
+					disp_str(" ");
+			}
+			else
+			{
+				output[0] = keys[i];
+				disp_str(output);
+			}
 		}
 	}
 }
