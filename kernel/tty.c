@@ -21,6 +21,7 @@ PRIVATE void refresh_screen();
 PRIVATE void back();
 
 PRIVATE int time;
+PRIVATE int ONLY;
 PRIVATE int esc_mode;
 
 PUBLIC char keys[80 * 25] = {0};
@@ -40,6 +41,7 @@ PUBLIC void task_tty()
 	clean_screen();
 	esc_mode = 0;
 	index = 0;
+	ONLY=0;
 	d_index = 0;
 	s_index = 0;
 	p_index = 0;
@@ -56,6 +58,7 @@ PUBLIC void task_tty()
 			time = get_ticks();
 		}
 		keyboard_read();
+
 		set_cursor(disp_pos);
 	}
 }
@@ -68,6 +71,16 @@ PUBLIC void in_process(u32 key)
 	char output[2] = {'\0', '\0'};
 	if (esc_mode)
 	{
+		if(ONLY){
+			if((key&MASK_RAW) == ESC){
+				esc_mode = 0;
+				s_index = 0;
+				refresh_screen();
+				return;
+			}else{
+				return;
+			}
+		}
 		if (!(key & FLAG_EXT))
 		{
 			if (!(key & FLAG_CTRL_L || key & FLAG_CTRL_R))
@@ -87,6 +100,7 @@ PUBLIC void in_process(u32 key)
 				clean_screen();
 				str_match();
 				disp_color_str(s_keys, BLUE);
+				ONLY=1;
 				break;
 			case TAB:
 				s_keys[s_index++] = '\t';
