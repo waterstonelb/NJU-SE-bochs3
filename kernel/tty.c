@@ -46,15 +46,15 @@ PUBLIC void task_tty()
 	time = get_ticks();
 	while (1)
 	{
-		// if (((get_ticks() - time) * 1000 / HZ) > 200000 && esc_mode == 0)
-		// {
-		// 	clean_screen();
-		// 	index = 0;
-		// 	d_index = 0;
-		// 	s_index = 0;
-		// 	p_index = 0;
-		// 	time = get_ticks();
-		// }
+		if (((get_ticks() - time) * 1000 / HZ) > 200000 && esc_mode == 0)
+		{
+			clean_screen();
+			index = 0;
+			d_index = 0;
+			s_index = 0;
+			p_index = 0;
+			time = get_ticks();
+		}
 		keyboard_read();
 		set_cursor(disp_pos);
 	}
@@ -117,7 +117,7 @@ PUBLIC void in_process(u32 key)
 	{
 		if (!(key & FLAG_EXT))
 		{
-			if ((key & FLAG_CTRL_L || key & FLAG_CTRL_R) && (key & MASK_RAW) == 'z')
+			if ((key & FLAG_CTRL_L || key & FLAG_CTRL_R) && (key & 0xFF) == 'z')
 			{
 				back();
 			}
