@@ -41,7 +41,7 @@ PUBLIC void task_tty()
 	clean_screen();
 	esc_mode = 0;
 	index = 0;
-	ONLY=0;
+	ONLY = 0;
 	d_index = 0;
 	s_index = 0;
 	p_index = 0;
@@ -71,13 +71,18 @@ PUBLIC void in_process(u32 key)
 	char output[2] = {'\0', '\0'};
 	if (esc_mode)
 	{
-		if(ONLY){
-			if((key&MASK_RAW) == ESC){
+		if (ONLY)
+		{
+			if ((key & MASK_RAW) == ESC)
+			{
+				ONLY = 0;
 				esc_mode = 0;
 				s_index = 0;
 				refresh_screen();
 				return;
-			}else{
+			}
+			else
+			{
 				return;
 			}
 		}
@@ -99,14 +104,27 @@ PUBLIC void in_process(u32 key)
 				s_keys[s_index] = '\0';
 				clean_screen();
 				str_match();
-				disp_color_str(s_keys, BLUE);
-				ONLY=1;
+				char output[2]={'\0','\0'};
+				for (int i = 0; i < s_index; i++)
+				{
+					if(s_keys[i]=='\t'){
+						disp_str("    ");
+					}
+					else{
+						output[0]=s_keys[i];
+						disp_color_str(output,BLUE);
+					}
+				}
+				
+				//disp_color_str(s_keys, BLUE);
+				ONLY = 1;
 				break;
 			case TAB:
 				s_keys[s_index++] = '\t';
-				int num = 4 - (disp_pos / 2 % 4);
-				for (int i = 0; i < num; i++)
-					disp_str(" ");
+				// int num = 4 - (disp_pos / 2 % 4);
+				// for (int i = 0; i < num; i++)
+				// 	disp_str(" ");
+				disp_str("    ");
 				break;
 			case BACKSPACE:
 				if (s_index > 0)
@@ -230,9 +248,15 @@ PRIVATE void str_match()
 		{
 			for (int k = i; k < j - 1; k++)
 			{
+				if (keys[k] == '\t')
+				{
+					int num = 4 - (disp_pos / 2 % 4);
+					for (int i = 0; i < num; i++)
+						disp_str(" ");
+				}else{
 				output[0] = keys[k];
 				disp_color_str(output, BLUE);
-				i = k;
+				i = k;}
 			}
 		}
 		else
